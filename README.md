@@ -1,152 +1,191 @@
-🚀 Guia de Configuração: Ambiente de Desenvolvimento Full-Stack
+# Setup Ambiente de Desenvolvimento Fullstack
 
-Este guia contém todos os passos e comandos necessários para configurar um ambiente de desenvolvimento com Java 17 (OpenJDK), Maven, Node.js 20, Angular CLI, PostgreSQL e VS Code com as extensões essenciais para projetos Spring Boot e Angular.
+Este guia configura um ambiente completo para desenvolvimento Java Spring Boot + Angular no Linux.
 
-1. Atualizar o Sistema e Instalar Ferramentas Essenciais
+## Pré-requisitos
 
-Primeiro, vamos garantir que o sistema está atualizado e instalar ferramentas básicas como curl, wget e git, caso ainda não as tenha.
-Bash
+Sistema operacional Ubuntu/Debian/Linux Mint com acesso root.
 
+## Instalação Base
+
+### Atualizando o sistema
+```bash
 sudo apt update && sudo apt upgrade -y
-sudo apt install curl wget git -y
+sudo apt install curl wget git build-essential -y
+```
 
-2. Instalar Java 17 e Maven
+## Java Development Kit
 
-Java OpenJDK 17 (LTS)
-
-Instalaremos a versão 17 do OpenJDK, que é uma versão de suporte de longo prazo (LTS).
-Bash
-
+### OpenJDK 17 LTS
+```bash
 sudo apt install openjdk-17-jdk -y
+```
+
+Verificar instalação:
+```bash
 java -version
 javac -version
+```
 
-Configurar JAVA_HOME
+### Configuração JAVA_HOME
+Adicionar ao arquivo `~/.bashrc`:
+```bash
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+export PATH=$PATH:$JAVA_HOME/bin
+```
 
-Para que outras ferramentas encontrem o Java, é uma boa prática configurar a variável de ambiente JAVA_HOME.
-Bash
-
-echo 'export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64' >> ~/.bashrc
-echo 'export PATH=$PATH:$JAVA_HOME/bin' >> ~/.bashrc
+Aplicar mudanças:
+```bash
 source ~/.bashrc
 echo $JAVA_HOME
+```
 
-Maven
+## Apache Maven
 
-O Maven é a principal ferramenta de gerenciamento de projetos para Java.
-Bash
-
+### Instalação
+```bash
 sudo apt install maven -y
 mvn -version
+```
 
-3. Instalar Node.js e Angular CLI
+## Node.js e npm
 
-Node.js 20 LTS
-
-Vamos instalar o Node.js 20, que é a versão LTS recomendada para desenvolvimento.
-Bash
-
+### Via NodeSource Repository
+```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y nodejs
+```
+
+Verificar versões:
+```bash
 node -v
 npm -v
+```
 
-Angular CLI
-
-O Angular CLI é a interface de linha de comando para criar e gerenciar projetos Angular.
-Bash
-
-sudo npm install -g @angular/cli
-ng version
-
-Dica: Se tiver problemas de permissão com o sudo npm, você pode configurar o npm para instalar pacotes globalmente na sua pasta de usuário.
-Bash
-
+### Configurar npm global sem sudo (opcional)
+```bash
 mkdir ~/.npm-global
 npm config set prefix '~/.npm-global'
 echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.bashrc
 source ~/.bashrc
+```
+
+## Angular CLI
+
+### Instalação global
+```bash
 npm install -g @angular/cli
+ng version
+```
 
-4. Instalar e Configurar PostgreSQL
+## PostgreSQL
 
-O PostgreSQL é um dos bancos de dados mais robustos e usados no mercado.
-Bash
-
+### Instalação e configuração
+```bash
 sudo apt install postgresql postgresql-contrib -y
-sudo systemctl status postgresql
 sudo systemctl start postgresql
 sudo systemctl enable postgresql
+```
 
-Configuração do Banco de Dados
-
-Agora, vamos criar um usuário e um banco de dados para os seus projetos.
-Entre no terminal do psql com o usuário postgres:
-Bash
-
+### Criação de usuário e database
+```bash
 sudo -u postgres psql
+```
 
-Dentro do psql, execute os seguintes comandos:
-SQL
-
-CREATE USER fitness_user WITH PASSWORD 'fitness123';
-CREATE DATABASE fitness_db OWNER fitness_user;
-GRANT ALL PRIVILEGES ON DATABASE fitness_db TO fitness_user;
+No console do PostgreSQL:
+```sql
+CREATE USER app_user WITH PASSWORD 'dev_password';
+CREATE DATABASE app_database OWNER app_user;
+GRANT ALL PRIVILEGES ON DATABASE app_database TO app_user;
 \q
+```
 
-5. Instalar VS Code e Extensões Essenciais
+## Docker e Docker Compose
 
-Instalar o VS Code
+### Instalação Docker
+```bash
+# Remover versões antigas
+sudo apt-get remove docker docker-engine docker.io containerd runc
 
-Vamos instalar o editor de código mais popular para desenvolvimento web.
-Bash
+# Instalar dependências
+sudo apt-get update
+sudo apt-get install ca-certificates curl gnupg lsb-release
 
+# Adicionar chave GPG oficial
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+# Configurar repositório
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Instalar Docker Engine
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+```
+
+### Configurar usuário Docker
+```bash
+sudo groupadd docker
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+### Testar instalação
+```bash
+docker run hello-world
+docker compose version
+```
+
+## Visual Studio Code
+
+### Instalação via repositório oficial
+```bash
 wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
 sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/
 sudo sh -c 'echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list'
+
 sudo apt update
 sudo apt install code -y
+```
 
-Instalar Extensões
+### Extensões recomendadas
 
-Essas extensões são cruciais para a produtividade em projetos Java/Spring e Angular.
-Bash
-
+#### Para Java/Spring Boot
+```bash
 code --install-extension vscjava.vscode-java-pack
 code --install-extension vmware.vscode-spring-boot
 code --install-extension vscjava.vscode-spring-initializr
 code --install-extension vscjava.vscode-spring-boot-dashboard
-code --install-extension redhat.java
 code --install-extension vscjava.vscode-maven
+```
 
+#### Para Angular/TypeScript
+```bash
 code --install-extension angular.ng-template
 code --install-extension ms-vscode.vscode-typescript-next
-code --install-extension bradlc.vscode-tailwindcss
 code --install-extension esbenp.prettier-vscode
 code --install-extension ms-vscode.vscode-eslint
+code --install-extension bradlc.vscode-tailwindcss
 code --install-extension formulahendry.auto-rename-tag
-code --install-extension christian-kohler.path-intellisense
+```
 
+#### Ferramentas gerais
+```bash
 code --install-extension ms-vscode.vscode-json
 code --install-extension redhat.vscode-yaml
-code --install-extension ms-python.python
-code --install-extension ms-vscode.powershell
 code --install-extension eamodio.gitlens
-code --install-extension ritwickdey.liveserver
-code --install-extension ms-vscode.remote-containers
-code --install-extension ms-vscode-remote.remote-ssh
+code --install-extension ms-azuretools.vscode-docker
+code --install-extension humao.rest-client
+```
 
-6. Configurar o VS Code
+## Configuração VSCode
 
-É importante garantir que o VS Code utilize o Java e o Maven que instalamos.
-Abra o arquivo de configurações do VS Code:
-Bash
+### Settings.json recomendado
+Caminho: `~/.config/Code/User/settings.json`
 
-code ~/.config/Code/User/settings.json
-
-Adicione o seguinte JSON ao arquivo (você pode copiar e colar o bloco inteiro):
-JSON
-
+```json
 {
   "java.home": "/usr/lib/jvm/java-17-openjdk-amd64",
   "java.configuration.runtimes": [
@@ -165,57 +204,192 @@ JSON
   "angular.enable-strict-mode-prompt": false,
   "emmet.includeLanguages": {
     "typescript": "html"
-  },
-  "files.associations": {
-    "*.html": "html"
   }
 }
+```
 
-7. Testes e Verificação Final
+## Ferramentas adicionais
 
-Para garantir que tudo foi instalado corretamente, execute todos os comandos de verificação de uma vez.
-Bash
+### Git configuração inicial
+```bash
+git config --global user.name "Seu Nome"
+git config --global user.email "seu.email@exemplo.com"
+git config --global init.defaultBranch main
+```
 
-echo "=== JAVA ==="
+### Postman (opcional)
+```bash
+sudo snap install postman
+```
+
+### DBeaver (cliente banco de dados)
+```bash
+sudo snap install dbeaver-ce
+```
+
+## Verificação da instalação
+
+### Script de verificação
+```bash
+#!/bin/bash
+
+echo "=== Verificação do Ambiente ==="
+
+echo "Java:"
 java -version
 echo "JAVA_HOME: $JAVA_HOME"
-echo "=== MAVEN ==="
+
+echo -e "\nMaven:"
 mvn -version
-echo "=== NODE ==="
+
+echo -e "\nNode.js:"
 node -v
+
+echo -e "\nnpm:"
 npm -v
-echo "=== ANGULAR ==="
-ng version
-echo "=== POSTGRESQL ==="
-sudo systemctl status postgresql | grep Active
-echo "=== VSCODE =="
+
+echo -e "\nAngular CLI:"
+ng version --skip-git
+
+echo -e "\nPostgreSQL:"
+sudo systemctl is-active postgresql
+
+echo -e "\nDocker:"
+docker --version
+docker compose version
+
+echo -e "\nVSCode:"
 code --version
-echo "=== EXTENSÕES INSTALADAS ==="
-code --list-extensions | grep -E "(java|spring|angular|typescript)"
 
-Criar e Testar Projetos Exemplo
+echo -e "\n=== Instalação concluída ==="
+```
 
-Para um teste completo, você pode criar um projeto Spring Boot e um Angular.
+## Estrutura de projeto recomendada
 
-Teste do Spring Boot:
-Bash
+```
+projeto-fitness/
+├── backend/                # Spring Boot API
+│   ├── src/
+│   ├── pom.xml
+│   └── Dockerfile
+├── frontend/               # Angular App
+│   ├── src/
+│   ├── package.json
+│   └── Dockerfile
+├── docker-compose.yml      # Orquestração containers
+├── docs/                   # Documentação
+└── README.md
+```
 
-mkdir ~/teste && cd ~/teste
+## Docker Compose básico
+
+### docker-compose.yml
+```yaml
+version: '3.8'
+
+services:
+  database:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: app_database
+      POSTGRES_USER: app_user
+      POSTGRES_PASSWORD: dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - database
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/app_database
+      SPRING_DATASOURCE_USERNAME: app_user
+      SPRING_DATASOURCE_PASSWORD: dev_password
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "4200:4200"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:
+```
+
+## Comandos úteis
+
+### Desenvolvimento
+```bash
+# Iniciar banco local
+sudo systemctl start postgresql
+
+# Criar projeto Spring Boot
 curl https://start.spring.io/starter.tgz \
-  -d dependencies=web \
+  -d dependencies=web,data-jpa,security,postgresql \
   -d type=maven-project \
   -d javaVersion=17 \
-  -d groupId=com.teste \
-  -d artifactId=teste-api \
+  -d groupId=com.example \
+  -d artifactId=app-backend \
   | tar -xzvf -
 
-cd teste-api
-./mvnw spring-boot:run
+# Criar projeto Angular
+ng new app-frontend --routing --style=scss
 
-Teste do Angular:
-Bash
+# Subir ambiente com Docker
+docker compose up -d
 
-cd ~/teste
-ng new teste-app --routing --style=scss --skip-git
-cd teste-app
-ng serve
+# Parar ambiente
+docker compose down
+```
+
+### Manutenção
+```bash
+# Atualizar npm packages
+npm update -g
+
+# Limpar cache Maven
+mvn clean
+
+# Atualizar Angular CLI
+npm update -g @angular/cli
+
+# Limpar containers Docker
+docker system prune -f
+```
+
+## Troubleshooting
+
+### Erro JAVA_HOME não encontrado
+```bash
+sudo update-alternatives --config java
+# Copiar o caminho e configurar JAVA_HOME
+```
+
+### Erro permissão npm global
+```bash
+sudo chown -R $(whoami) ~/.npm
+```
+
+### PostgreSQL não conecta
+```bash
+sudo systemctl restart postgresql
+sudo -u postgres psql -c "SELECT version();"
+```
+
+### Docker permissão negada
+```bash
+# Relogar após adicionar usuário ao grupo docker
+su - $USER
+```
+
+---
+
+**Ambiente configurado com sucesso!** Agora você pode desenvolver aplicações fullstack usando Java Spring Boot + Angular com suporte completo a containers Docker.
